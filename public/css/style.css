@@ -1,0 +1,51 @@
+/* Базовые стили */
+body {
+    background-color: #F4EFE9;
+    font-family: 'Montserrat Alternates', sans-serif;
+    color: #60406F;
+}
+
+/* Шапка и подвал */
+.bg-purple-light {
+    background-color: #D8C4E0;
+}
+
+/* Навигация */
+.navbar .nav-link {
+    color: #4a2f58;
+    font-size: 24px;
+}
+
+.navbar .nav-link:hover {
+    color: #4a2f58;
+    text-decoration: none;
+}
+
+/* Кнопки */
+.btn-purple {
+    background-color: #4a2f58;
+    color: #F4EFE9;
+    border: none;
+    font-size: 24px;
+}
+
+.btn-purple:hover {
+    background-color: #4a2f58;
+    color: #F4EFE9;
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 600px;
+    object-fit: cover;
+}
+
+.footer-text{
+    font-size: 20px;
+}
+/* Высота слайдера для мобильных (ширина экрана до 576px) */
+@media (max-width: 575.98px) {
+    .carousel-item img {
+        height: 250px;
+    }
+}
