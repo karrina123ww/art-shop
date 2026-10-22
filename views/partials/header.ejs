@@ -26,9 +26,14 @@
                     <li class="nav-item"><a class="nav-link" href="/cart">Корзина</a></li>
                     <li class="nav-item"><a class="nav-link" href="/contacts">Контакты</a></li>
                 </ul>
-                <div class="d-flex gap-2">
-                    <a href="/login" class="btn btn-purple">Вход</a>
-                    <a href="/register" class="btn btn-purple">Регистрация</a>
+                <div class="d-flex gap-2 align-items-center">
+                    <% if (user) { %>
+                        <span class="me-2">Здравствуйте, <%= user.name %>!</span>
+                        <a href="/logout" class="btn btn-purple">Выйти</a>
+                    <% } else { %>
+                        <a href="/login" class="btn btn-purple">Вход</a>
+                        <a href="/register" class="btn btn-purple">Регистрация</a>
+                    <% } %>
                 </div>
             </div>
         </div>
