@@ -1,7 +1,51 @@
 <%- include('partials/header') %>
 
 <div class="container my-5">
-    <h1>Каталог</h1>
+    <h1 class="mb-4">Каталог</h1>
+
+    <!-- Форма фильтрации и сортировки -->
+    <form method="GET" action="/catalog" class="row g-3 mb-4">
+        <div class="col-md-5">
+            <label class="form-label">Сортировать по:</label>
+            <select name="sort" class="form-select" onchange="this.form.submit()">
+                <option value="new" <%= currentSort === 'new' ? 'selected' : '' %>>Новинки</option>
+                <option value="popular" <%= currentSort === 'popular' ? 'selected' : '' %>>Популярные</option>
+                <option value="name" <%= currentSort === 'name' ? 'selected' : '' %>>Наименованию</option>
+                <option value="price_asc" <%= currentSort === 'price_asc' ? 'selected' : '' %>>Цене (по возрастанию)</option>
+                <option value="price_desc" <%= currentSort === 'price_desc' ? 'selected' : '' %>>Цене (по убыванию)</option>
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Категория:</label>
+            <select name="category" class="form-select" onchange="this.form.submit()">
+                <option value="">Все категории</option>
+                <% categories.forEach(cat => { %>
+                    <option value="<%= cat.id %>" <%= currentCategory == cat.id ? 'selected' : '' %>>
+                        <%= cat.name %>
+                    </option>
+                <% }) %>
+            </select>
+        </div>
+    </form>
+
+    <!-- Сетка товаров -->
+    <div class="row">
+        <% if (products.length === 0) { %>
+            <p>Товаров не найдено.</p>
+        <% } %>
+        <% products.forEach(product => { %>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="<%= product.image_url %>" class="card-img-top" alt="<%= product.name %>" style="height: 200px; object-fit: cover;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title"><%= product.name %></h5>
+                        <p class="card-text mt-auto"><strong><%= product.price %> ₽</strong></p>
+                        <a href="/product/<%= product.id %>" class="btn btn-purple">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+    </div>
 </div>
 
 <%- include('partials/footer') %>

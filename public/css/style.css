@@ -49,3 +49,17 @@ body {
         height: 250px;
     }
 }
+
+/* Поля сортировки и фильтров */
+.form-select,
+.form-select option,
+.form-label {
+    color: #60406F;
+}
+
+/* Название и цена товара в карточке */
+.card-title,
+.card-text,
+.card-body {
+    color: #60406F;
+}

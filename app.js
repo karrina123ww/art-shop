@@ -35,10 +35,6 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-app.get('/catalog', (req, res) => {
-    res.render('catalog');
-});
-
 app.get('/contacts', (req, res) => {
     res.render('contacts');
 });
@@ -202,3 +198,79 @@ pool.query('SELECT NOW()')
     .catch(err => {
         console.error('Ошибка подключения к БД:', err);
     });
+
+app.get('/catalog', async (req, res) => {
+    try {
+        const categoriesResult = await pool.query('SELECT id, name FROM categories ORDER BY name');
+        const categories = categoriesResult.rows;
+
+        // Белый список сортировок
+        const sortMap = {
+            'new': 'p.id DESC',
+            'popular': 'total_sold DESC',
+            'name': 'p.name ASC',
+            'price_asc': 'p.price ASC',
+            'price_desc': 'p.price DESC'
+        };
+        const sortParam = req.query.sort || 'new';
+        const orderBy = sortMap[sortParam] || sortMap['new'];
+
+        // Фильтр по категории
+        let categoryFilter = '';
+        const params = [];
+        if (req.query.category) {
+            const catId = parseInt(req.query.category, 10);
+            if (!isNaN(catId)) {
+                params.push(catId);
+                categoryFilter = ` AND p.category_id = $${params.length}`;
+            }
+        }
+
+        // Запрос с подсчётом продаж
+        const query = `
+            SELECT p.id, p.name, p.price, p.image_url,
+                   COALESCE(SUM(oi.quantity), 0) AS total_sold
+            FROM products p
+            LEFT JOIN order_items oi ON oi.product_id = p.id
+            WHERE p.stock > 0 ${categoryFilter}
+            GROUP BY p.id
+            ORDER BY ${orderBy}
+        `;
+
+        const productsResult = await pool.query(query, params);
+        const products = productsResult.rows;
+
+        res.render('catalog', {
+            categories,
+            products,
+            currentSort: sortParam,
+            currentCategory: req.query.category || ''
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка загрузки каталога');
+    }
+});
+
+app.get('/product/:id', async (req, res) => {
+    try {
+        const productId = parseInt(req.params.id, 10);
+        if (isNaN(productId)) {
+            return res.status(404).send('Товар не найден');
+        }
+
+        const result = await pool.query(
+            'SELECT * FROM products WHERE id = $1 AND stock > 0',
+            [productId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).send('Товар не найден или отсутствует в наличии');
+        }
+
+        res.render('product', { product: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка загрузки товара');
+    }
+});
