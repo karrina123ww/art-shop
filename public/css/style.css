@@ -63,3 +63,9 @@ body {
 .card-body {
     color: #60406F;
 }
+
+.table td,
+.table th {
+    background-color: #F4EFE9;
+    color: #60406F;
+}

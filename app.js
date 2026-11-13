@@ -186,6 +186,158 @@ app.get('/logout', (req, res) => {
     });
 });
 
+// ============ КОРЗИНА ============
+
+// Добавить товар в корзину
+app.post('/cart/add', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    const productId = parseInt(req.body.product_id, 10);
+    if (isNaN(productId)) return res.redirect('/catalog');
+
+    const result = await pool.query(
+        'SELECT id, name, price, stock FROM products WHERE id = $1 AND stock > 0',
+        [productId]
+    );
+
+    if (result.rows.length === 0) return res.redirect('/catalog');
+
+    const product = result.rows[0];
+
+    if (!req.session.cart) req.session.cart = [];
+
+    const existing = req.session.cart.find(item => item.id === productId);
+
+    if (existing) {
+        if (existing.quantity < product.stock) {
+            existing.quantity += 1;
+        }
+    } else {
+        req.session.cart.push({
+            id: product.id,
+            name: product.name,
+            price: parseFloat(product.price),
+            stock: product.stock,
+            quantity: 1
+        });
+    }
+
+    res.redirect(req.get('referer') || '/catalog');
+});
+
+app.post('/cart/increase', (req, res) => {
+    const productId = parseInt(req.body.product_id, 10);
+    if (!req.session.cart) return res.redirect('/cart');
+
+    const item = req.session.cart.find(i => i.id === productId);
+    if (item && item.quantity < item.stock) {
+        item.quantity += 1;
+    }
+
+    res.redirect('/cart');
+});
+
+app.post('/cart/decrease', (req, res) => {
+    const productId = parseInt(req.body.product_id, 10);
+    if (!req.session.cart) return res.redirect('/cart');
+
+    const index = req.session.cart.findIndex(i => i.id === productId);
+    if (index !== -1) {
+        req.session.cart[index].quantity -= 1;
+        if (req.session.cart[index].quantity <= 0) {
+            req.session.cart.splice(index, 1);
+        }
+    }
+
+    res.redirect('/cart');
+});
+
+app.get('/cart', (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    const cart = req.session.cart || [];
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    res.render('cart', {
+        cart,
+        total,
+        errors: [],
+        old: {}
+    });
+});
+
+app.post('/cart/checkout', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    const cart = req.session.cart || [];
+    if (cart.length === 0) return res.redirect('/cart');
+
+    const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const userResult = await pool.query(
+        'SELECT password_hash FROM users WHERE id = $1',
+        [req.session.user.id]
+    );
+
+    if (userResult.rows.length === 0) return res.redirect('/login');
+
+    const match = await bcrypt.compare(req.body.password, userResult.rows[0].password_hash);
+
+    if (!match) {
+        return res.render('cart', {
+            cart,
+            total,
+            errors: [{ msg: 'Неверный пароль' }],
+            old: {}
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const orderResult = await client.query(
+            `INSERT INTO orders (user_id, status, total_price, created_at, updated_at)
+             VALUES ($1, 'new', $2, NOW(), NOW())
+             RETURNING id`,
+            [req.session.user.id, total]
+        );
+
+        const orderId = orderResult.rows[0].id;
+
+        for (const item of cart) {
+            await client.query(
+                `INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
+                 VALUES ($1, $2, $3, $4)`,
+                [orderId, item.id, item.quantity, item.price]
+            );
+
+            await client.query(
+                'UPDATE products SET stock = stock - $1 WHERE id = $2',
+                [item.quantity, item.id]
+            );
+        }
+
+        await client.query('COMMIT');
+
+        req.session.cart = [];
+
+        res.redirect('/');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.render('cart', {
+            cart,
+            total,
+            errors: [{ msg: 'Ошибка при оформлении заказа' }],
+            old: {}
+        });
+    } finally {
+        client.release();
+    }
+});
+
 // ============ ЗАПУСК ============
 
 pool.query('SELECT NOW()')

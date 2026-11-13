@@ -1,0 +1,71 @@
+    <%- include('partials/header') %>
+
+    <div class="container my-5">
+        <h1 class="mb-4">Корзина</h1>
+
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <% errors.forEach(err => { %>
+                        <li><%= err.msg %></li>
+                    <% }) %>
+                </ul>
+            </div>
+        <% } %>
+
+        <% if (cart.length === 0) { %>
+            <p>Корзина пуста.</p>
+            <a href="/catalog" class="btn btn-purple">Перейти в каталог</a>
+        <% } else { %>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Сумма</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% cart.forEach(item => { %>
+                        <tr>
+                            <td><%= item.name %></td>
+                            <td><%= item.price %> ₽</td>
+                            <td>
+                                <form action="/cart/decrease" method="POST" class="d-inline">
+                                    <input type="hidden" name="product_id" value="<%= item.id %>">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">−</button>
+                                </form>
+                                <span class="mx-2"><%= item.quantity %></span>
+                                <form action="/cart/increase" method="POST" class="d-inline">
+                                    <input type="hidden" name="product_id" value="<%= item.id %>">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary" <%= item.quantity >= item.stock ? 'disabled' : '' %>>+</button>
+                                </form>
+                            </td>
+                            <td><%= (item.price * item.quantity).toFixed(2) %> ₽</td>
+                            <td></td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+
+            <p class="fs-4 text-end"><strong>Итого: <%= total.toFixed(2) %> ₽</strong></p>
+
+            <hr>
+
+            <h4>Оформление заказа</h4>
+            <p>Для подтверждения заказа введите пароль:</p>
+
+            <form action="/cart/checkout" method="POST" class="row g-3" style="max-width: 400px;">
+                <div class="col-12">
+                    <input type="password" name="password" class="form-control" placeholder="Ваш пароль" required>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-purple">Сформировать заказ</button>
+                </div>
+            </form>
+        <% } %>
+    </div>
+
+    <%- include('partials/footer') %>
