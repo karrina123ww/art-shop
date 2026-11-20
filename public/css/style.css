@@ -1,8 +1,35 @@
 /* Базовые стили */
+html, body {
+    height: 100%; /* Важно для прижатия подвала */
+}
+
 body {
     background-color: #F4EFE9;
     font-family: 'Montserrat Alternates', sans-serif;
     color: #60406F;
+    
+    /* Flexbox для прижатия подвала */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Заставляем основной контент растягиваться, выталкивая подвал вниз */
+main, 
+.container.my-5, 
+div[class*="container"]:not(footer .container) {
+    /* Это правило растянет главные контейнеры, но лучше использовать обертку */
+}
+
+/* Самый надежный способ: задаем отступ футеру */
+footer {
+    margin-top: auto; /* Автоматически прижимает подвал к низу */
+    width: 100%;
+}
+
+/* Убираем лишний отступ у последнего контейнера перед подвалом (опционально) */
+footer.mt-5 {
+    margin-top: auto !important; /* Перебиваем mt-5, чтобы не было двойного отступа */
 }
 
 /* Шапка и подвал */
@@ -29,6 +56,20 @@ body {
     font-size: 24px;
 }
 
+.btn-light-purple {
+    background-color: #D8C4E0;
+    border-color: #4a2f58;
+    font-size: 24px;
+    color: #4a2f58;
+}
+
+.btn-light-purple:hover {
+    background-color: #D8C4E0;
+    border-color: #4a2f58;
+    font-size: 24px;
+    color: #4a2f58;
+}
+
 .btn-purple:hover {
     background-color: #4a2f58;
     color: #F4EFE9;
@@ -40,9 +81,10 @@ body {
     object-fit: cover;
 }
 
-.footer-text{
+.footer-text {
     font-size: 20px;
 }
+
 /* Высота слайдера для мобильных (ширина экрана до 576px) */
 @media (max-width: 575.98px) {
     .carousel-item img {
@@ -68,4 +110,54 @@ body {
 .table th {
     background-color: #F4EFE9;
     color: #60406F;
+}
+
+/* ========================================= */
+/* ==== ДОБАВЛЕНО ДЛЯ ЛИЧНОГО КАБИНЕТА ==== */
+/* ========================================= */
+
+/* Плашка статуса "Новый" */
+.bg-purple {
+    background-color: #4a2f58 !important;
+    color: #F4EFE9 !important;
+    font-weight: 500;
+}
+
+/* ========================================= */
+/* ===== ДОБАВЛЕНО ДЛЯ КОНТАКТОВ ========== */
+/* ========================================= */
+
+.contacts-page {
+    color: #60406F;
+}
+
+.contacts-page h1 {
+    color: #4a2f58;
+}
+
+.contacts-page .card {
+    background-color: #ffffff;
+    border: 1px solid #D8C4E0;
+}
+
+.contacts-page h4,
+.contacts-page h6 {
+    color: #4a2f58;
+}
+
+/* Перебиваем серый цвет Bootstrap на ваш фирменный */
+.contacts-page .text-muted {
+    color: #60406F !important;
+}
+
+/* Ссылки в контактах */
+.contacts-page a.text-muted:hover {
+    color: #4a2f58 !important;
+    text-decoration: underline !important;
+}
+
+/* Полоска-разделитель */
+.contacts-page hr {
+    border-color: #D8C4E0;
+    opacity: 1;
 }

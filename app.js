@@ -426,3 +426,81 @@ app.get('/product/:id', async (req, res) => {
         res.status(500).send('Ошибка загрузки товара');
     }
 });
+
+// ============ ЛИЧНЫЙ КАБИНЕТ ============
+
+app.get('/profile', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+
+    try {
+        const query = `
+            SELECT o.id, o.status, o.total_price, o.created_at,
+                   COALESCE(SUM(oi.quantity), 0) AS total_items,
+                   STRING_AGG(p.name, ', ') AS product_names
+            FROM orders o
+            JOIN order_items oi ON o.id = oi.order_id
+            JOIN products p ON oi.product_id = p.id
+            WHERE o.user_id = $1
+            GROUP BY o.id
+            ORDER BY o.created_at DESC
+        `;
+        const result = await pool.query(query, [req.session.user.id]);
+        const orders = result.rows;
+
+        res.render('profile', { 
+            orders, 
+            errors: [], 
+            success: req.query.success || null 
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка загрузки профиля');
+    }
+});
+
+app.post('/profile/order/:id/delete', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    
+    const orderId = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) return res.redirect('/profile');
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const orderCheck = await client.query(
+            'SELECT id FROM orders WHERE id = $1 AND user_id = $2 AND status = $3',
+            [orderId, req.session.user.id, 'new']
+        );
+
+        if (orderCheck.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.redirect('/profile'); 
+        }
+
+        const items = await client.query(
+            'SELECT product_id, quantity FROM order_items WHERE order_id = $1',
+            [orderId]
+        );
+
+        for (const item of items.rows) {
+            await client.query(
+                'UPDATE products SET stock = stock + $1 WHERE id = $2',
+                [item.quantity, item.product_id]
+            );
+        }
+
+        await client.query('DELETE FROM order_items WHERE order_id = $1', [orderId]);
+        await client.query('DELETE FROM orders WHERE id = $1', [orderId]);
+
+        await client.query('COMMIT');
+        res.redirect('/profile?success=deleted');
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(err);
+        res.redirect('/profile'); 
+    } finally {
+        client.release();
+    }
+});

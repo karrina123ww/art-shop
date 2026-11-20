@@ -1,7 +1,48 @@
 <%- include('partials/header') %>
 
-<div class="container my-5">
-    <h1>Контакты</h1>
+<div class="container my-5 contacts-page">
+    <h1 class="mb-4">Контакты</h1>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card h-100 shadow-sm border-0 bg-light">
+                <div class="card-body p-4">
+                    <h4 class="card-title mb-4">Художественный магазин</h4>
+                    
+                    <div class="mb-3 d-flex align-items-start">
+                        <div>
+                            <h6 class="mb-1">Адрес:</h6>
+                            <p class="text-muted mb-0">г. Владимир, Большая Московская ул., 19А<br>ТЦ "Торговые ряды", 2 этаж</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 d-flex align-items-start">
+                        <div>
+                            <h6 class="mb-1">Телефон:</h6>
+                            <p class="text-muted mb-0"><a href="tel:+74951234567" class="text-decoration-none text-muted">+7 (495) 123-45-67</a></p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 d-flex align-items-start">
+                        <div>
+                            <h6 class="mb-1">Email:</h6>
+                            <p class="text-muted mb-0"><a href="mailto:info@art-shop.ru" class="text-decoration-none text-muted">info@art-shop.ru</a></p>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-2">Режим работы:</h6>
+                    <p class="text-muted mb-0">Пн-Пт: с 10:00 до 20:00<br>Сб-Вс: с 11:00 до 19:00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card h-100 shadow-sm border-0">
+                <img src="/images/map.png" class="card-img-top h-100" alt="Карта проезда" style="object-fit: cover; min-height: 400px;">
+            </div>
+        </div>
+    </div>
 </div>
 
 <%- include('partials/footer') %>
